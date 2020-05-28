@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class UserDataManager : MonoBehaviour
 {
-	private const string API = "https://finalproject-3ec77.firebaseio.com/players/";
+	private const string API = "https://finalproject-3ec77.firebaseio.com/players/";   //link to database
 
 	public static string userName;
 	string password;
@@ -29,7 +29,7 @@ public class UserDataManager : MonoBehaviour
 	public GameObject signInMenu;
 
 
-	private void Awake()
+	private void Awake()   
 	{
 		if (instance == null)
 		{
@@ -43,9 +43,10 @@ public class UserDataManager : MonoBehaviour
 		}
 	}
 
-	public void onStart()
+
+	public void onStart()            
 	{
-		getMenuUI();
+		getMenuUI();         
 		if (userName != null && userName != "")
 		{
 			signInValid();
@@ -59,7 +60,7 @@ public class UserDataManager : MonoBehaviour
 	}
 	
 
-	public void getMenuUI()
+	public void getMenuUI()      
 	{
 		user = GameObject.Find("Name").GetComponent<InputField>();
 		pass = GameObject.Find("Password").GetComponent<InputField>();
@@ -69,14 +70,14 @@ public class UserDataManager : MonoBehaviour
 		greeting = GameObject.FindGameObjectWithTag("NameTag").GetComponent<TextMeshProUGUI>();
 	}
 
-	public void signIn()
+	public void signIn()   //gets the input that the client put in the ui
 	{
 		userName = user.text;
 		password = pass.text;
 		getUserData();
 	}
 
-	void checkForOtherNames()
+	void checkForOtherNames()   //checks if a user with the same name already exists in the Database (the user name is the key)
 	{
 		error.text = "Checking name...";
 		StartCoroutine(waitForTimeOutRegister());
@@ -129,7 +130,7 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	void noOtherPlayers()
+	void noOtherPlayers()               //creates a new account in the databse and signs-in the client
 	{
 		SaveData newData = new SaveData();
 		newData.userName = userName;
@@ -162,7 +163,7 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	void signInInvalid()    //if the details entered to sign in/up are invalid
+	void signInInvalid()    //if the details entered to sign in/up are invalid - resets the input fields
 	{
 		user.text = "";
 		pass.text = "";
@@ -170,7 +171,7 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	void getUserData()
+	void getUserData()           //gets the password of the account with the entered name to check if the pass entered by client is the same
 	{
 		StartCoroutine(waitForTimeOut());
 		RestClient.Get<SaveData>(API + userName + ".json").Then(response => {	
@@ -192,7 +193,7 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	IEnumerator waitForTimeOut()
+	IEnumerator waitForTimeOut()    // stops trying to find account after a set amount of time,to prevent getting stuck forever
 	{
 		yield return new WaitForSeconds(timeOutLength);
 		if(playerData.password == null || playerData.userName == "")
@@ -215,15 +216,12 @@ public class UserDataManager : MonoBehaviour
 
 	public void signOut()
 	{
-		saveUserData();       //WHEN THIS IS ACTIVE THE USER name and data are set to "" IN THE DATABASE AFTER LOGGING OUT,BUT WHEN DISABLED A USER REGISTER OVERIDES AN EXISTING USER!!
-		
+		saveUserData();       
 		user.text = "";
 		pass.text = "";
 		error.text = "";
 		menu.SetActive(false);
-		signInMenu.SetActive(true);
-		
-		
+		signInMenu.SetActive(true);	
 	}
 }
 
