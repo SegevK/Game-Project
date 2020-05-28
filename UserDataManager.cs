@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Proyecto26;
@@ -14,7 +14,7 @@ public class UserDataManager : MonoBehaviour
 	string password;
 
 	public static UserDataManager instance;
-	
+
 	public float timeOutLength = 5f;   //Time Spent trying to connect to a game, until it times out
 
 	public SaveData playerData;
@@ -29,14 +29,14 @@ public class UserDataManager : MonoBehaviour
 	public GameObject signInMenu;
 
 
-	private void Awake()   
+	private void Awake()
 	{
 		if (instance == null)
 		{
 			instance = this;
 			DontDestroyOnLoad(this.gameObject);
 		}
-		
+
 		else
 		{
 			Destroy(this.gameObject);
@@ -44,9 +44,9 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	public void onStart()            
+	public void onStart()
 	{
-		getMenuUI();         
+		getMenuUI();
 		if (userName != null && userName != "")
 		{
 			signInValid();
@@ -58,9 +58,9 @@ public class UserDataManager : MonoBehaviour
 			error.text = "";
 		}
 	}
-	
 
-	public void getMenuUI()      
+
+	public void getMenuUI()
 	{
 		user = GameObject.Find("Name").GetComponent<InputField>();
 		pass = GameObject.Find("Password").GetComponent<InputField>();
@@ -84,7 +84,7 @@ public class UserDataManager : MonoBehaviour
 		RestClient.Get<SaveData>(API + userName + ".json").Then(response => {
 			StopAllCoroutines();
 
-			if (response.password == "" || response.password == null  || response.password == password)
+			if (response.password == "" || response.password == null || response.password == password)
 			{
 				error.text = "There is a user with this name";
 			}
@@ -96,7 +96,7 @@ public class UserDataManager : MonoBehaviour
 		});
 	}
 
-	public void register()
+	public void register()      
 	{
 		userName = user.text;
 		password = pass.text;
@@ -104,7 +104,7 @@ public class UserDataManager : MonoBehaviour
 		{
 			if (checkValidInput())
 			{
-				checkForOtherNames();    
+				checkForOtherNames();
 			}
 
 			else
@@ -142,22 +142,9 @@ public class UserDataManager : MonoBehaviour
 
 
 
-	void checkPassword()
-	{
-		if(password == playerData.password)
-		{
-			signInValid();	
-		}
-		else
-		{
-			signInInvalid();
-		}
-	}
-
-
 	void signInValid()   //after a user signs in to his account
 	{
-		greeting.text = "Playing As " +userName;
+		greeting.text = "Playing As " + userName;
 		signInMenu.SetActive(false);
 		menu.SetActive(true);
 	}
@@ -174,29 +161,46 @@ public class UserDataManager : MonoBehaviour
 	void getUserData()           //gets the password of the account with the entered name to check if the pass entered by client is the same
 	{
 		StartCoroutine(waitForTimeOut());
-		RestClient.Get<SaveData>(API + userName + ".json").Then(response => {	
-		playerData = response;
-		StopAllCoroutines();
-		checkPassword();
-				
+		RestClient.Get<SaveData>(API + userName + ".json").Then(response => {
+			playerData = response;
+			StopAllCoroutines();
+			checkPassword();
+
 		});
-		
+
 	}
+
+
+
+	void checkPassword()
+	{
+		if (password == playerData.password)
+		{
+			signInValid();
+		}
+		else
+		{
+			signInInvalid();
+		}
+	}
+
+
 
 
 	public void saveUserData()   // Saves the user name and password in the data base Under an Account called the same as the username entered
-		
+
 	{
 		SaveData.instance.userName = userName;
-		SaveData.instance.password= password;
+		SaveData.instance.password = password;
 		RestClient.Put(API + userName + ".json", SaveData.instance);     //the savedata.instance contains the username and password
 	}
+
 
 
 	IEnumerator waitForTimeOut()    // stops trying to find account after a set amount of time,to prevent getting stuck forever
 	{
 		yield return new WaitForSeconds(timeOutLength);
-		if(playerData.password == null || playerData.userName == "")
+		if (playerData.password == null || playerData.userName == "")
 		{
 			error.text = "Invalid Player Name";
 			Debug.LogError("Invalid player name");
@@ -204,24 +208,22 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	IEnumerator waitForTimeOutRegister()
+	IEnumerator waitForTimeOutRegister()     
 	{
-		yield return new WaitForSeconds(timeOutLength/2f);
+		yield return new WaitForSeconds(timeOutLength / 2f);
 		noOtherPlayers();
 	}
 
 
-	
 
-
-	public void signOut()
+	public void signOut()      //logs the user out of his account in the game,and returns him to the signIn/Create account menu
 	{
-		saveUserData();       
+		saveUserData();
 		user.text = "";
 		pass.text = "";
 		error.text = "";
 		menu.SetActive(false);
-		signInMenu.SetActive(true);	
+		signInMenu.SetActive(true);
 	}
 }
 
