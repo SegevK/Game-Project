@@ -56,8 +56,11 @@ public class PlayerSetup : NetworkBehaviour
 	}
 
 
-	void OnDisable()
+	void OnDisable()    // runs when the player leaves a game lobby or dies  -- FIX AND SEPERATE TO 2 CASES - LEAVE GAME AND ON DEATH
 	{
+	        Debug.log("The Client Left The Game");
+	        Cursor.lockState = CursorLockMode.None;
+		
 		if (isLocalPlayer)
 		{
 			GameManager.instance.SetLobbyCameraActive(true);
