@@ -1,18 +1,21 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
-// Gun Script
+//TO DO:
 // DISABLE/STOP SOUND PLAYING ON PLAYER DEATH
-// ADD EVERY SOUND/AUDIO SCRIPT TO A [Command] + check for erors with sound in multiplayer
-public class HandgunScript : NetworkBehaviour 
+// ADD EVERY SOUND/AUDIO SCRIPT TO A [Command] + check for erors with sound in multiplayer(Sync with server)
+
+
+// Gun Script
+public class HandgunScript : NetworkBehaviour
 {
 
 	#region PlayerSettings
-	
+
 	public PlayerWeapon weapon; //from the weapon class
-	
+
 	[SerializeField]
 	private LayerMask mask;
 
@@ -83,7 +86,7 @@ public class HandgunScript : NetworkBehaviour
 	//Check if out of ammo
 	private bool outOfAmmo;
 
-	
+
 	// DISABLE BULLET SETTINGS BECAUSE WE USE RAYCASTS AND NOT PHYSICS OBJECTS 
 	[Header("Bullet Settings")]
 	//Bullet
@@ -94,7 +97,7 @@ public class HandgunScript : NetworkBehaviour
 	public float showBulletInMagDelay = 0.6f;
 	[Tooltip("The bullet model inside the mag, not used for all weapons.")]
 	public SkinnedMeshRenderer bulletInMagRenderer;
-	
+
 
 
 	[Header("Grenade Settings")]
@@ -137,17 +140,17 @@ public class HandgunScript : NetworkBehaviour
 
 	[System.Serializable]
 	public class prefabs
-	{  
+	{
 		[Header("Prefabs")]
 		public Transform bulletPrefab;
 		public Transform casingPrefab;
 		public Transform grenadePrefab;
 	}
 	public prefabs Prefabs;
-	
+
 	[System.Serializable]
 	public class spawnpoints
-	{  
+	{
 		[Header("Spawnpoints")]
 		//Array holding casing spawn points 
 		//Casing spawn point array
@@ -177,7 +180,7 @@ public class HandgunScript : NetworkBehaviour
 
 
 	#region InGame
-	private void Awake () 
+	private void Awake()
 	{
 
 		//Set current ammo to total ammo value
@@ -186,7 +189,8 @@ public class HandgunScript : NetworkBehaviour
 		muzzleflashLight.enabled = false;
 	}
 
-	private void Start () {
+	private void Start()
+	{
 		//Save the weapon name
 		storedWeaponName = weaponName;
 		//Get weapon name from string to text
@@ -201,7 +205,7 @@ public class HandgunScript : NetworkBehaviour
 		shootAudioSource.clip = SoundClips.shootSound;
 	}
 
-	
+
 	/*
 	private void LateUpdate () {
 		//Weapon sway
@@ -222,66 +226,67 @@ public class HandgunScript : NetworkBehaviour
 		}
 	}
 	*/
-	
-	private void Update () 
+
+	private void Update()
 	{
 		if (PauseMenu.IsOn)
 			return;
 
 
-/*    used for testing mouse cursur in game
-		if (Input.GetKeyDown(KeyCode.L))  //press L key to hide the cursur in-game
-		{
-			Cursor.lockState = CursorLockMode.Locked;
-			Cursor.visible = false;
-		}
-		if (Input.GetKeyDown(KeyCode.U))   //press U key to Unhide the cursur in-game
-		{
-			Cursor.lockState = CursorLockMode.None;
-			Cursor.visible = true;
-		}
-
-*/
+		/*    used for testing mouse cursur in game
+				if (Input.GetKeyDown(KeyCode.L))  //press L key to hide the cursur in-game
+				{
+					Cursor.lockState = CursorLockMode.Locked;
+					Cursor.visible = false;
+				}
+				if (Input.GetKeyDown(KeyCode.U))   //press U key to Unhide the cursur in-game
+				{
+					Cursor.lockState = CursorLockMode.None;
+					Cursor.visible = true;
+				}
+		*/
 
 
 		//Aiming
 		//Toggle camera FOV when right click is held down
-		if (Input.GetButton("Fire2") && !isReloading && !isRunning && !isInspecting) 
+		if (Input.GetButton("Fire2") && !isReloading && !isRunning && !isInspecting)
 		{
-			gunCamera.fieldOfView = Mathf.Lerp (gunCamera.fieldOfView,
+			gunCamera.fieldOfView = Mathf.Lerp(gunCamera.fieldOfView,
 				aimFov, fovSpeed * Time.deltaTime);
 			isAiming = true;
-			anim.SetBool ("Aim", true);
+			anim.SetBool("Aim", true);
 
-			if (!soundHasPlayed) 
+			if (!soundHasPlayed)
 			{
 				mainAudioSource.clip = SoundClips.aimSound;
-				mainAudioSource.Play ();
+				mainAudioSource.Play();
 				soundHasPlayed = true;
 			}
-		} 
-		
+		}
 
-		else 
+
+		else
 		{
 			//When right click is released
 			//crosshair.enabled = true;
 			gunCamera.fieldOfView = Mathf.Lerp(gunCamera.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
 			isAiming = false;
-			anim.SetBool ("Aim", false);
+			anim.SetBool("Aim", false);
 		}
 		//Aiming end
 
 
+
 		//If randomize muzzleflash is true, genereate random int values
-		if (randomMuzzleflash == true) {
-			randomMuzzleflashValue = Random.Range (minRandomValue, maxRandomValue);
+		if (randomMuzzleflash == true)
+		{
+			randomMuzzleflashValue = Random.Range(minRandomValue, maxRandomValue);
 		}
 
 
 
 		//Timescale settings ----- DO NOT ACTIVATE !!!!!! 
- 		//Change timescale to normal when 1 key is pressed
+		//Change timescale to normal when 1 key is pressed
 		/*
 		if (Input.GetKeyDown (KeyCode.Alpha1)) 
 		{
@@ -312,77 +317,76 @@ public class HandgunScript : NetworkBehaviour
 			Time.timeScale = 0.0f;
 			timescaleText.text = "0.0";
 		}
-
 	    */ // TIME SCALE SETTINGS -- DO NOT ACTIVATE //
 
 
 
 		//Set current ammo text from ammo int
-		currentAmmoText.text = currentAmmo.ToString ();
+		currentAmmoText.text = currentAmmo.ToString();
 
 		//Continosuly check which animation 
 		//is currently playing
-		AnimationCheck ();
+		AnimationCheck();
 
 		//Play knife attack 1 animation when Q key is pressed
-		if (Input.GetKeyDown (KeyCode.Q) && !isInspecting) 
+		if (Input.GetKeyDown(KeyCode.Q) && !isInspecting)
 		{
-			anim.Play ("Knife Attack 1", 0, 0f);
+			anim.Play("Knife Attack 1", 0, 0f);
 		}
 		//Play knife attack 2 animation when F key is pressed
-		if (Input.GetKeyDown (KeyCode.F) && !isInspecting) 
+		if (Input.GetKeyDown(KeyCode.F) && !isInspecting)
 		{
-			anim.Play ("Knife Attack 2", 0, 0f);
+			anim.Play("Knife Attack 2", 0, 0f);
 		}
-			
+
 		//Throw grenade when pressing G key
-		if (Input.GetKeyDown (KeyCode.G) && !isInspecting) 
+		if (Input.GetKeyDown(KeyCode.G) && !isInspecting)
 		{
-			StartCoroutine (GrenadeSpawnDelay ());
+			StartCoroutine(GrenadeSpawnDelay());
 			//Play grenade throw animation
 			anim.Play("GrenadeThrow", 0, 0.0f);
 		}
 
 		//If out of ammo
-		if (currentAmmo == 0) 
+		if (currentAmmo == 0)
 		{
 			//Show out of ammo text
 			currentWeaponText.text = "OUT OF AMMO";
 			//Toggle bool
 			outOfAmmo = true;
 			//Auto reload if true
-			if (autoReload == true && !isReloading) 
+			if (autoReload == true && !isReloading)
 			{
-				StartCoroutine (AutoReload ());
+				StartCoroutine(AutoReload());
 			}
-				
+
 			//Set slider back
-			anim.SetBool ("Out Of Ammo Slider", true);
+			anim.SetBool("Out Of Ammo Slider", true);
 			//Increase layer weight for blending to slider back pose
-			anim.SetLayerWeight (1, 1.0f);
-		} 
-		else 
+			anim.SetLayerWeight(1, 1.0f);
+		}
+		else
 		{
 			//When ammo is full, show weapon name again
-			currentWeaponText.text = storedWeaponName.ToString ();
+			currentWeaponText.text = storedWeaponName.ToString();
 			//Toggle bool
 			outOfAmmo = false;
 			//anim.SetBool ("Out Of Ammo", false);
-			anim.SetLayerWeight (1, 0.0f);
+			anim.SetLayerWeight(1, 0.0f);
 		}
 
 
 		//Shooting 
-		if (Input.GetMouseButtonDown (0) && !outOfAmmo && !isReloading && !isInspecting && !isRunning) 
+		if (Input.GetMouseButtonDown(0) && !outOfAmmo && !isReloading && !isInspecting && !isRunning)
 		{
 			//Remove 1 bullet from ammo
 			currentAmmo -= 1;
 			shootAudioSource.clip = SoundClips.shootSound;
 			shootAudioSource.Play();
-		
 
-		    Shoot();
-			
+
+			Shoot();
+
 
 			/* USING RAYCASTS INSTEAD OF PHYSICS BULLETS SO LEAVE THIS PART DISABLED
 			//Spawn bullet at bullet spawnpoint 
@@ -390,11 +394,9 @@ public class HandgunScript : NetworkBehaviour
 				Prefabs.bulletPrefab,
 				Spawnpoints.bulletSpawnPoint.transform.position,
 				Spawnpoints.bulletSpawnPoint.transform.rotation);
-
 			//Add velocity to the bullet
 			bullet.GetComponent<Rigidbody>().velocity = 
 			bullet.transform.forward * bulletForce;
-
 			//Spawn casing prefab at spawnpoint
 			Instantiate (Prefabs.casingPrefab, 
 				Spawnpoints.casingSpawnPoint.transform.position, 
@@ -404,13 +406,13 @@ public class HandgunScript : NetworkBehaviour
 
 
 		//Inspect weapon when pressing T key
-		if (Input.GetKeyDown (KeyCode.T)) 
+		if (Input.GetKeyDown(KeyCode.T))
 		{
-			anim.SetTrigger ("Inspect");
+			anim.SetTrigger("Inspect");
 		}
 
 		//Toggle weapon holster when pressing E key
-		if (Input.GetKeyDown (KeyCode.E) && !hasBeenHolstered) 
+		if (Input.GetKeyDown(KeyCode.E) && !hasBeenHolstered)
 		{
 			holstered = true;
 
@@ -418,199 +420,214 @@ public class HandgunScript : NetworkBehaviour
 			mainAudioSource.Play();
 
 			hasBeenHolstered = true;
-		} 
-		else if (Input.GetKeyDown (KeyCode.E) && hasBeenHolstered) 
+		}
+		else if (Input.GetKeyDown(KeyCode.E) && hasBeenHolstered)
 		{
 			holstered = false;
 
 			mainAudioSource.clip = SoundClips.takeOutSound;
-			mainAudioSource.Play ();
+			mainAudioSource.Play();
 
 			hasBeenHolstered = false;
 		}
 
 		//Holster anim toggle
-		if (holstered == true) 
+		if (holstered == true)
 		{
-			anim.SetBool ("Holster", true);
-		} 
-		else 
+			anim.SetBool("Holster", true);
+		}
+		else
 		{
-			anim.SetBool ("Holster", false);
+			anim.SetBool("Holster", false);
 		}
 
 		//Reload 
-		if (Input.GetKeyDown (KeyCode.R) && !isReloading && !isInspecting) 
+		if (Input.GetKeyDown(KeyCode.R) && !isReloading && !isInspecting)
 		{
 			//Reload
-			Reload ();
+			Reload();
 
-			if (!hasStartedSliderBack) 
+			if (!hasStartedSliderBack)
 			{
 				hasStartedSliderBack = true;
-				StartCoroutine (HandgunSliderBackDelay());
+				StartCoroutine(HandgunSliderBackDelay());
 			}
 		}
 
 		//Walking when pressing down WASD keys
-		if (Input.GetKey (KeyCode.W) && !isRunning || 
-			Input.GetKey (KeyCode.A) && !isRunning || 
-			Input.GetKey (KeyCode.S) && !isRunning || 
-			Input.GetKey (KeyCode.D) && !isRunning) 
+		if (Input.GetKey(KeyCode.W) && !isRunning ||
+			Input.GetKey(KeyCode.A) && !isRunning ||
+			Input.GetKey(KeyCode.S) && !isRunning ||
+			Input.GetKey(KeyCode.D) && !isRunning)
 		{
-			anim.SetBool ("Walk", true);
-		} else {
-			anim.SetBool ("Walk", false);
+			anim.SetBool("Walk", true);
+		}
+		else
+		{
+			anim.SetBool("Walk", false);
 		}
 
 		//Running when pressing down W and Left Shift key
-		if ((Input.GetKey (KeyCode.W) && Input.GetKey (KeyCode.LeftShift))) 
+		if ((Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift)))
 		{
 			isRunning = true;
-		} else {
+		}
+		else
+		{
 			isRunning = false;
 		}
-		
+
 		//Run anim toggle
-		if (isRunning == true) {
-			anim.SetBool ("Run", true);
-		} else {
-			anim.SetBool ("Run", false);
+		if (isRunning == true)
+		{
+			anim.SetBool("Run", true);
+		}
+		else
+		{
+			anim.SetBool("Run", false);
 		}
 	}
 
-	private IEnumerator HandgunSliderBackDelay () {
+	private IEnumerator HandgunSliderBackDelay()
+	{
 		//Wait set amount of time
-		yield return new WaitForSeconds (sliderBackTimer);
+		yield return new WaitForSeconds(sliderBackTimer);
 		//Set slider back
-		anim.SetBool ("Out Of Ammo Slider", false);
+		anim.SetBool("Out Of Ammo Slider", false);
 		//Increase layer weight for blending to slider back pose
-		anim.SetLayerWeight (1, 0.0f);
+		anim.SetLayerWeight(1, 0.0f);
 
 		hasStartedSliderBack = false;
 	}
 
-	private IEnumerator GrenadeSpawnDelay () {
+	private IEnumerator GrenadeSpawnDelay()
+	{
 		//Wait for set amount of time before spawning grenade
-		yield return new WaitForSeconds (grenadeSpawnDelay);
+		yield return new WaitForSeconds(grenadeSpawnDelay);
 		//Spawn grenade prefab at spawnpoint
-		Instantiate(Prefabs.grenadePrefab, 
-			Spawnpoints.grenadeSpawnPoint.transform.position, 
+		Instantiate(Prefabs.grenadePrefab,
+			Spawnpoints.grenadeSpawnPoint.transform.position,
 			Spawnpoints.grenadeSpawnPoint.transform.rotation);
 	}
 
-	private IEnumerator AutoReload () {
+	private IEnumerator AutoReload()
+	{
 
-		if (!hasStartedSliderBack) 
+		if (!hasStartedSliderBack)
 		{
 			hasStartedSliderBack = true;
 
-			StartCoroutine (HandgunSliderBackDelay());
+			StartCoroutine(HandgunSliderBackDelay());
 		}
 		//Wait for set amount of time
-		yield return new WaitForSeconds (autoReloadDelay);
+		yield return new WaitForSeconds(autoReloadDelay);
 
-		if (outOfAmmo == true) {
+		if (outOfAmmo == true)
+		{
 			//Play diff anim if out of ammo
-			anim.Play ("Reload Out Of Ammo", 0, 0f);
+			anim.Play("Reload Out Of Ammo", 0, 0f);
 
 			mainAudioSource.clip = SoundClips.reloadSoundOutOfAmmo;
-			mainAudioSource.Play ();
+			mainAudioSource.Play();
 
 			//If out of ammo, hide the bullet renderer in the mag
 			//Do not show if bullet renderer is not assigned in inspector
-			if (bulletInMagRenderer != null) 
+			if (bulletInMagRenderer != null)
 			{
 				bulletInMagRenderer.GetComponent
-				<SkinnedMeshRenderer> ().enabled = false;
+				<SkinnedMeshRenderer>().enabled = false;
 				//Start show bullet delay
-				StartCoroutine (ShowBulletInMag ());
+				StartCoroutine(ShowBulletInMag());
 			}
 		}
-		
+
 		//Restore ammo when reloading
 		currentAmmo = ammo;
 		outOfAmmo = false;
 	}
 
 	//Reload
-	private void Reload () {
-		
-		if (outOfAmmo == true) 
+	private void Reload()
+	{
+
+		if (outOfAmmo == true)
 		{
 			//Play diff anim if out of ammo
-			anim.Play ("Reload Out Of Ammo", 0, 0f);
+			anim.Play("Reload Out Of Ammo", 0, 0f);
 
 			mainAudioSource.clip = SoundClips.reloadSoundOutOfAmmo;
-			mainAudioSource.Play ();
+			mainAudioSource.Play();
 
 			//If out of ammo, hide the bullet renderer in the mag
 			//Do not show if bullet renderer is not assigned in inspector
-			if (bulletInMagRenderer != null) 
+			if (bulletInMagRenderer != null)
 			{
 				bulletInMagRenderer.GetComponent
-				<SkinnedMeshRenderer> ().enabled = false;
+				<SkinnedMeshRenderer>().enabled = false;
 				//Start show bullet delay
-				StartCoroutine (ShowBulletInMag ());
+				StartCoroutine(ShowBulletInMag());
 			}
-		} 
-		else 
+		}
+		else
 		{
 			//Play diff anim if ammo left
-			anim.Play ("Reload Ammo Left", 0, 0f);
+			anim.Play("Reload Ammo Left", 0, 0f);
 
 			mainAudioSource.clip = SoundClips.reloadSoundAmmoLeft;
-			mainAudioSource.Play ();
+			mainAudioSource.Play();
 
 			//If reloading when ammo left, show bullet in mag
 			//Do not show if bullet renderer is not assigned in inspector
-			if (bulletInMagRenderer != null) 
+			if (bulletInMagRenderer != null)
 			{
 				bulletInMagRenderer.GetComponent
-				<SkinnedMeshRenderer> ().enabled = true;
+				<SkinnedMeshRenderer>().enabled = true;
 			}
 		}
 		//Restore ammo when reloading
 		currentAmmo = ammo;
 		outOfAmmo = false;
-	}
+	}   //Reload end
+
+
 
 	//Enable bullet in mag renderer after set amount of time
-	private IEnumerator ShowBulletInMag () {
+	private IEnumerator ShowBulletInMag()
+	{
 		//Wait set amount of time before showing bullet in mag
-		yield return new WaitForSeconds (showBulletInMagDelay);
-		bulletInMagRenderer.GetComponent<SkinnedMeshRenderer> ().enabled = true;
+		yield return new WaitForSeconds(showBulletInMagDelay);
+		bulletInMagRenderer.GetComponent<SkinnedMeshRenderer>().enabled = true;
 	}
 
 	//Show light when shooting, then disable after set amount of time
-	private IEnumerator MuzzleFlashLight () 
+	private IEnumerator MuzzleFlashLight()
 	{
 		muzzleflashLight.enabled = true;
-		yield return new WaitForSeconds (lightDuration);
+		yield return new WaitForSeconds(lightDuration);
 		muzzleflashLight.enabled = false;
 	}
 
 	//Check current animation playing
-	private void AnimationCheck () 
+	private void AnimationCheck()
 	{
 		//Check if reloading
 		//Check both animations
-		if (anim.GetCurrentAnimatorStateInfo (0).IsName ("Reload Out Of Ammo") || 
-			anim.GetCurrentAnimatorStateInfo (0).IsName ("Reload Ammo Left")) 
+		if (anim.GetCurrentAnimatorStateInfo(0).IsName("Reload Out Of Ammo") ||
+			anim.GetCurrentAnimatorStateInfo(0).IsName("Reload Ammo Left"))
 		{
 			isReloading = true;
-		} 
-		else 
+		}
+		else
 		{
 			isReloading = false;
 		}
 
 		//Check if inspecting weapon
-		if (anim.GetCurrentAnimatorStateInfo (0).IsName ("Inspect")) 
+		if (anim.GetCurrentAnimatorStateInfo(0).IsName("Inspect"))
 		{
 			isInspecting = true;
-		} 
-		else 
+		}
+		else
 		{
 			isInspecting = false;
 		}
@@ -618,16 +635,17 @@ public class HandgunScript : NetworkBehaviour
 
 	#endregion
 
-	
-	// Might change raycast to server to prevent cheaters,but can cause alot of problems(watch brakeys vid ep 8 for more info) //
-	[Client]   
+
+	// Might change raycast to server to prevent cheaters,but can cause alot of problems //
+
+	[Client]
 	void Shoot()
 	{
 		if (!isLocalPlayer)   //causes the shoot method to activate for only one player- the client
 		{
 			return;
 		}
-		
+
 		CmdOnShoot();
 
 
@@ -651,7 +669,7 @@ public class HandgunScript : NetworkBehaviour
 			}
 
 			CmdOnBulletHit(shot.point, shot.normal);
-		
+
 		}
 
 	}
@@ -659,7 +677,7 @@ public class HandgunScript : NetworkBehaviour
 
 	//commands are methods/functions that are called/executed only on the server side.
 	//runs the function on the server using data on the client,and the client needs to have a NetId to use a command method
-	[Command]    
+	[Command]
 	void CmdPlayerShot(string PlayerName, int weaponDmg)
 	{
 		Debug.Log("This Is the CmdPlayerShot Function");
@@ -669,7 +687,7 @@ public class HandgunScript : NetworkBehaviour
 		Player.RpcTakeDamage(weaponDmg);
 	}
 
-	
+
 	//called on the server side when a player shoots
 	[Command]
 	void CmdOnShoot()   //this method is used for CALLING ANOTHER METHOD ON ALL THE OTHER CLIENTS,for displaying the weapon gfx(muzzleflash,etc..)
@@ -679,14 +697,14 @@ public class HandgunScript : NetworkBehaviour
 
 	//is called on all clients when a player shoots
 	//so everyone will see the weapon gfx from each player
-	[ClientRpc]  
+	[ClientRpc]
 	void RpcDoShootGfx()
 	{
 		anim.Play("Fire", 0, 0f);
 		muzzleParticles.Emit(1);
 		//Light flash start
 		StartCoroutine(MuzzleFlashLight());
-		
+
 		if (!isAiming) //if not aiming
 		{
 			anim.Play("Fire", 0, 0f);
@@ -732,7 +750,7 @@ public class HandgunScript : NetworkBehaviour
 	[Command]    //this method is for sending the impact effect to all the players
 	void CmdOnBulletHit(Vector3 pos, Vector3 normal)  //the hit position and the normal of the surface that got hit(normal is a vector3 that points up-90 degrees from the surface)
 	{
-		RpcDoImpactEffect(pos, normal) ;
+		RpcDoImpactEffect(pos, normal);
 	}
 
 
