@@ -1,14 +1,23 @@
 ﻿using UnityEngine.Networking;
 using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
+
 
 public class PlayerManager : NetworkBehaviour
 {
     private bool didSetup = false;   //traks if the local player has already gone through the setup method atleast once
 
+    [SerializeField]   //used for hp in ui
+    Text Hp;
+
     [SerializeField]
     private GameObject[] disableGameObjOnDeath;
-
+    
+    [SerializeField]  
+    private GameObject Crosshair;    //used for disabling crossahir on local player death
+    
+    
     [SerializeField]
     private Behaviour[] disableOnDeath;
     private bool[] wasEnabled; //array that stores all the components that got disabled when the Localplayer died
@@ -16,10 +25,10 @@ public class PlayerManager : NetworkBehaviour
 
     [SerializeField]
     private int maxHealth = 100;
-    
+
     [SyncVar] //syncvar means every time the value is changed,it will change for all the players//
     private int currentHealth;
-   
+
     [SyncVar]
     private bool dead = false;
     public bool IsDead
@@ -72,11 +81,11 @@ public class PlayerManager : NetworkBehaviour
 
         currentHealth = maxHealth;
 
-        //Re-Activating all the Components that were disabled on LocalPlayer Death
+        //Re-Enabling all the Components that were disabled on LocalPlayer Death(scripts,etc...)
         for (int i = 0; i < disableOnDeath.Length; i++)  
             disableOnDeath[i].enabled = wasEnabled[i];
         
-        // Re-Enabling all the GameObjects that were disabled on LocalPlayer death(Camera,Gun camera...)
+        // Re-Enabling all the GameObjects that were disabled on LocalPlayer death(Camera,Gun camera,etc...)
         for (int i = 0; i < disableGameObjOnDeath.Length; i++)
             disableGameObjOnDeath[i].SetActive(true);
 
@@ -107,16 +116,18 @@ public class PlayerManager : NetworkBehaviour
     {
         if (!isLocalPlayer)
             return;
-        
         if (Input.GetKeyDown(KeyCode.K))   //**FOR TESTING** pressing k will automaticly kill the player
-            RpcTakeDamage(999);  
+            RpcTakeDamage(999);
+        if (gameObject.transform.position.y < -10)     //kills the player if he falls off the map   --- (TRY TO PUT THIS IN A DIFFRENT SCRIPT THAT KILLS THE PLAYER IF HE COLLIDES WITH A COLLIDER THAT IS BELLOW THE MAP)
+            RpcTakeDamage(999);
+        Hp.text = currentHealth.ToString();
     }
     
 
     private void KillPlayer()
     {
         dead = true;
-
+        Crosshair.SetActive(false);
         //disables all Components on LocalPlayer Death
         for (int i = 0; i < disableOnDeath.Length; i++)
             disableOnDeath[i].enabled = false;
@@ -160,7 +171,7 @@ public class PlayerManager : NetworkBehaviour
         transform.rotation = spawnPoint.rotation;
 
         yield return new WaitForSeconds(0.05f);  //waiting 0.05 sec so the player will spawn first,and then go to setup fucntion
-
+        Crosshair.SetActive(true);
         Setup();
     }
 

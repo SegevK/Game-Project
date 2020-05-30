@@ -5,7 +5,7 @@ public class HostGame : MonoBehaviour
 {
     private NetworkManager networkManager;
 
-    private uint LobbySize = 6;   //uint  is a diffrent version of int and holds only positive values,6 is the size of the lobby in the services tab
+    public uint LobbySize = 6;   //uint  is a diffrent version of int and holds only positive values,6 is the size of the lobby in the services tab
     
     private string LobbyName;
     //private string LobbyPassword;   //CHECK CASE THE USER DOSENT INPUT A PASSWORD!!
@@ -17,6 +17,15 @@ public class HostGame : MonoBehaviour
             networkManager.StartMatchMaker();       
 
     }
+
+
+    /*  DISABLE UNTIL FIXED PROBLEM
+    public void SetLobbyPassword(string LPass)
+    {
+        LobbyPassword = LPass;
+    }
+    */
+
 
     public void SetLobbyName(string LName)
     {

@@ -3,13 +3,14 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(PlayerManager))] //so we will always get a valid component when calling the PM//
 
 // This script is Setting up the player, and Adding/Removing him To/From the network
+//TO DO -- DISABLE ALL AUDIO SOURCES ON LOCAL PLAYER DEATH -- USE .Stop())
 
-public class PlayerSetup : NetworkBehaviour 
+public class PlayerSetup : NetworkBehaviour
 {
-	
+
 	[SerializeField] Behaviour[] ComponentsToDisable;
 	[SerializeField] GameObject[] GameObjectsToDisable;
-	
+
 
 	void SetLayerRecursively(GameObject obj, int newLayer)
 	{
@@ -22,14 +23,14 @@ public class PlayerSetup : NetworkBehaviour
 	}
 
 
-	void Start()    
+	void Start()
 	{
 
 		if (!isLocalPlayer)
 		{
 			for (int i = 0; i < ComponentsToDisable.Length; i++)
 				ComponentsToDisable[i].enabled = false;
-			
+
 			for (int j = 0; j < GameObjectsToDisable.Length; j++)
 				SetLayerRecursively(GameObjectsToDisable[j], 0);
 
@@ -38,9 +39,9 @@ public class PlayerSetup : NetworkBehaviour
 		else   //Only the local player enters the else statment
 		{
 			//after finished all the start script,we are ready to call the Setup method in PlayerManager Script
-			GetComponent<PlayerManager>().Setup();    
+			GetComponent<PlayerManager>().Setup();
 		}
-		
+
 	}
 
 
@@ -50,16 +51,17 @@ public class PlayerSetup : NetworkBehaviour
 	{
 		base.OnStartClient();
 		string NetId = GetComponent<NetworkIdentity>().netId.ToString();
-		PlayerManager playerManager = GetComponent<PlayerManager>();
+		PlayerManager playerManager = GetComponent<PlayerManager>(); 
 
 		GameManager.RegisterPlayer(NetId, playerManager);
 	}
 
 
-	void OnDisable()    // runs when the player leaves a game lobby or dies  -- FIX AND SEPERATE TO 2 CASES - LEAVE GAME AND ON DEATH
+	void OnDisable()    // runs when the player leaves a game lobby  or dies.
 	{
-	        Debug.log("The Client Left The Game");
-	        Cursor.lockState = CursorLockMode.None;
+		Debug.Log("The Client Left The Game");
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
 		
 		if (isLocalPlayer)
 		{
@@ -68,8 +70,8 @@ public class PlayerSetup : NetworkBehaviour
 
 		//Enables the lobby camera on local player death
 		// every time a player is disconecting Or Destroyed(died),**need to seperate to 2 cases later//
-		
-		GameManager.UnRegisterPlayer (transform.name); 
+
+		GameManager.UnRegisterPlayer(transform.name);
 	}
 
 }

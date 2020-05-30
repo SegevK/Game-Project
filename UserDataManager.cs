@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Proyecto26;
@@ -96,7 +96,7 @@ public class UserDataManager : MonoBehaviour
 		});
 	}
 
-	public void register()      
+	public void register()
 	{
 		userName = user.text;
 		password = pass.text;
@@ -208,7 +208,7 @@ public class UserDataManager : MonoBehaviour
 	}
 
 
-	IEnumerator waitForTimeOutRegister()     
+	IEnumerator waitForTimeOutRegister()
 	{
 		yield return new WaitForSeconds(timeOutLength / 2f);
 		noOtherPlayers();

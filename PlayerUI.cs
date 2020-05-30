@@ -59,6 +59,7 @@ public class PlayerUI : MonoBehaviour {
 
 		if (PauseMenu.IsOn)
 			Crosshair.enabled = false;
+
 		else
 		{
 			Crosshair.enabled = true;
@@ -68,8 +69,7 @@ public class PlayerUI : MonoBehaviour {
 		}
 		
 
-
-		/*
+		/*    USE FOR SCOREBOARD -- NOT YET IMPLEMENTED
 		if (Input.GetKeyDown(KeyCode.Tab))
 		{
 			scoreboard.SetActive(true);
@@ -78,7 +78,6 @@ public class PlayerUI : MonoBehaviour {
 			scoreboard.SetActive(false);
         }
 		*/
-
 	}
 
 	public void TogglePauseMenu ()    //toggles the pause menue And disables/enables the mouse cursur      FIX PROBLEM IN BUILD THAT CUSRSUR ISNT VISIBLE
@@ -99,20 +98,4 @@ public class PlayerUI : MonoBehaviour {
 		}
 			
 	}
-
-
-	/*
-
-	void SetHealthAmount (float healthAmount)
-	{
-		healthBarFill.localScale = new Vector3(1f, _amount, 1f);
-	}
-
-	void SetAmmoAmount (int ammoAmmount)
-	{
-		ammoText.text = _amount.ToString();
-	}
-
-	*/
-
 }

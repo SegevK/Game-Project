@@ -1,11 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
-
-//TO DO:
-// DISABLE/STOP SOUND PLAYING ON PLAYER DEATH
-// ADD EVERY SOUND/AUDIO SCRIPT TO A [Command] + check for erors with sound in multiplayer(Sync with server)
 
 
 // Gun Script
@@ -13,7 +9,7 @@ public class HandgunScript : NetworkBehaviour
 {
 
 	#region PlayerSettings
-
+	
 	public PlayerWeapon weapon; //from the weapon class
 
 	[SerializeField]
@@ -21,6 +17,10 @@ public class HandgunScript : NetworkBehaviour
 
 	//Animator component attached to weapon
 	public Animator anim;
+
+	[Header("UI Components")]
+	[SerializeField]   //used for the ui ammo counter
+	public Text currentAmmoText;
 
 	[Header("Gun Camera")]
 	//Main gun camera
@@ -132,11 +132,6 @@ public class HandgunScript : NetworkBehaviour
 	//Audio source used for shoot sound
 	public AudioSource shootAudioSource;
 
-	[Header("UI Components")]
-	public Text timescaleText;
-	public Text currentWeaponText;
-	public Text currentAmmoText;
-	public Text totalAmmoText;
 
 	[System.Serializable]
 	public class prefabs
@@ -191,47 +186,33 @@ public class HandgunScript : NetworkBehaviour
 
 	private void Start()
 	{
-		//Save the weapon name
-		storedWeaponName = weaponName;
-		//Get weapon name from string to text
-		currentWeaponText.text = weaponName;
-		//Set total ammo text from total ammo int
-		totalAmmoText.text = ammo.ToString();
-
 		//Weapon sway
 		initialSwayPosition = transform.localPosition;
-
 		//Set the shoot sound to audio source
 		shootAudioSource.clip = SoundClips.shootSound;
 	}
 
 
-	/*
-	private void LateUpdate () {
-		//Weapon sway
-		if (weaponSway == true) {
-			float movementX = -Input.GetAxis ("Mouse X") * swayAmount;
-			float movementY = -Input.GetAxis ("Mouse Y") * swayAmount;
-			//Clamp movement to min and max values
-			movementX = Mathf.Clamp 
-				(movementX, -maxSwayAmount, maxSwayAmount);
-			movementY = Mathf.Clamp 
-				(movementY, -maxSwayAmount, maxSwayAmount);
-			//Lerp local pos
-			Vector3 finalSwayPosition = new Vector3 
-				(movementX, movementY, 0);
-			transform.localPosition = Vector3.Lerp 
-				(transform.localPosition, finalSwayPosition + 
-				initialSwayPosition, Time.deltaTime * swaySmoothValue);
-		}
-	}
-	*/
-
 	private void Update()
 	{
+		currentAmmoText.text = currentAmmo.ToString();
 		if (PauseMenu.IsOn)
-			return;
+		{
+			if (isWalking)
+			{
+				anim.SetBool("Walk", false);
+				isWalking = false;
+			}
 
+			if (isRunning)
+			{
+				anim.SetBool("Run", false);
+				isRunning = false;
+			}
+
+			return;
+		}
+	
 
 		/*    used for testing mouse cursur in game
 				if (Input.GetKeyDown(KeyCode.L))  //press L key to hide the cursur in-game
@@ -264,7 +245,6 @@ public class HandgunScript : NetworkBehaviour
 			}
 		}
 
-
 		else
 		{
 			//When right click is released
@@ -276,14 +256,11 @@ public class HandgunScript : NetworkBehaviour
 		//Aiming end
 
 
-
 		//If randomize muzzleflash is true, genereate random int values
 		if (randomMuzzleflash == true)
 		{
 			randomMuzzleflashValue = Random.Range(minRandomValue, maxRandomValue);
 		}
-
-
 
 		//Timescale settings ----- DO NOT ACTIVATE !!!!!! 
 		//Change timescale to normal when 1 key is pressed
@@ -320,14 +297,11 @@ public class HandgunScript : NetworkBehaviour
 	    */ // TIME SCALE SETTINGS -- DO NOT ACTIVATE //
 
 
-
-		//Set current ammo text from ammo int
-		currentAmmoText.text = currentAmmo.ToString();
-
 		//Continosuly check which animation 
 		//is currently playing
 		AnimationCheck();
 
+		/*  ANIMATIONS THAT ARE NOT IN USE -- DIDNT HAVE TIME TO IMPLEMENT THE FEATURES THAT THE ANIMATIONS ARE USED FOR
 		//Play knife attack 1 animation when Q key is pressed
 		if (Input.GetKeyDown(KeyCode.Q) && !isInspecting)
 		{
@@ -346,12 +320,11 @@ public class HandgunScript : NetworkBehaviour
 			//Play grenade throw animation
 			anim.Play("GrenadeThrow", 0, 0.0f);
 		}
+		*/
 
 		//If out of ammo
 		if (currentAmmo == 0)
 		{
-			//Show out of ammo text
-			currentWeaponText.text = "OUT OF AMMO";
 			//Toggle bool
 			outOfAmmo = true;
 			//Auto reload if true
@@ -367,8 +340,6 @@ public class HandgunScript : NetworkBehaviour
 		}
 		else
 		{
-			//When ammo is full, show weapon name again
-			currentWeaponText.text = storedWeaponName.ToString();
 			//Toggle bool
 			outOfAmmo = false;
 			//anim.SetBool ("Out Of Ammo", false);
@@ -387,24 +358,9 @@ public class HandgunScript : NetworkBehaviour
 
 			Shoot();
 
-
-			/* USING RAYCASTS INSTEAD OF PHYSICS BULLETS SO LEAVE THIS PART DISABLED
-			//Spawn bullet at bullet spawnpoint 
-			var bullet = (Transform)Instantiate (
-				Prefabs.bulletPrefab,
-				Spawnpoints.bulletSpawnPoint.transform.position,
-				Spawnpoints.bulletSpawnPoint.transform.rotation);
-			//Add velocity to the bullet
-			bullet.GetComponent<Rigidbody>().velocity = 
-			bullet.transform.forward * bulletForce;
-			//Spawn casing prefab at spawnpoint
-			Instantiate (Prefabs.casingPrefab, 
-				Spawnpoints.casingSpawnPoint.transform.position, 
-				Spawnpoints.casingSpawnPoint.transform.rotation);
-				*/
 		}
 
-
+		/* FEATURES THAT I DIDNT HAVE TIME TO IMPLEMENT INTO THE GAME 
 		//Inspect weapon when pressing T key
 		if (Input.GetKeyDown(KeyCode.T))
 		{
@@ -440,13 +396,13 @@ public class HandgunScript : NetworkBehaviour
 		{
 			anim.SetBool("Holster", false);
 		}
+		*/
 
 		//Reload 
 		if (Input.GetKeyDown(KeyCode.R) && !isReloading && !isInspecting)
 		{
 			//Reload
 			Reload();
-
 			if (!hasStartedSliderBack)
 			{
 				hasStartedSliderBack = true;
@@ -454,16 +410,19 @@ public class HandgunScript : NetworkBehaviour
 			}
 		}
 
+
 		//Walking when pressing down WASD keys
 		if (Input.GetKey(KeyCode.W) && !isRunning ||
 			Input.GetKey(KeyCode.A) && !isRunning ||
 			Input.GetKey(KeyCode.S) && !isRunning ||
 			Input.GetKey(KeyCode.D) && !isRunning)
 		{
+			isWalking = true;
 			anim.SetBool("Walk", true);
 		}
 		else
 		{
+			isWalking = false;
 			anim.SetBool("Walk", false);
 		}
 
@@ -478,7 +437,7 @@ public class HandgunScript : NetworkBehaviour
 		}
 
 		//Run anim toggle
-		if (isRunning == true)
+		if (isRunning)
 		{
 			anim.SetBool("Run", true);
 		}
@@ -648,8 +607,6 @@ public class HandgunScript : NetworkBehaviour
 
 		CmdOnShoot();
 
-
-
 		RaycastHit shot;
 		if (Physics.Raycast(Spawnpoints.bulletSpawnPoint.transform.position, Spawnpoints.bulletSpawnPoint.transform.forward, out shot, weapon.range, mask))
 		{
@@ -671,10 +628,8 @@ public class HandgunScript : NetworkBehaviour
 			CmdOnBulletHit(shot.point, shot.normal);
 
 		}
-
 	}
-
-
+	
 	//commands are methods/functions that are called/executed only on the server side.
 	//runs the function on the server using data on the client,and the client needs to have a NetId to use a command method
 	[Command]
@@ -686,7 +641,6 @@ public class HandgunScript : NetworkBehaviour
 		PlayerManager Player = GameManager.GetPlayer(PlayerName);
 		Player.RpcTakeDamage(weaponDmg);
 	}
-
 
 	//called on the server side when a player shoots
 	[Command]
@@ -762,6 +716,5 @@ public class HandgunScript : NetworkBehaviour
 		Destroy(destroyEffect, 0.4f); //the float value sent to destroy method is the amount of time that the object stays alive
 	}
 
-
-
 }
+
