@@ -18,15 +18,6 @@ public class HostGame : MonoBehaviour
 
     }
 
-
-    /*  DISABLE UNTIL FIXED PROBLEM
-    public void SetLobbyPassword(string LPass)
-    {
-        LobbyPassword = LPass;
-    }
-    */
-
-
     public void SetLobbyName(string LName)
     {
         LobbyName = LName;
