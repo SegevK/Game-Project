@@ -35,7 +35,7 @@ public class JoinGame : MonoBehaviour
     }
 
 
-    //publique car on l'appelle depuis un bouton
+   
     public void RefreshServerBrowser()
     {
         ClearServerBrowser();
