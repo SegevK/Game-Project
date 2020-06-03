@@ -8,24 +8,14 @@ public class HostGame : MonoBehaviour
     public uint LobbySize = 6;   //uint  is a diffrent version of int and holds only positive values,6 is the size of the lobby in the services tab
     
     private string LobbyName;
-    //private string LobbyPassword;   //CHECK CASE THE USER DOSENT INPUT A PASSWORD!!
 
-    private void Start()
+    private void Start()    //starts the unity matchmaker
     {
         networkManager = NetworkManager.singleton;
         if (networkManager.matchMaker == null)
             networkManager.StartMatchMaker();       
 
     }
-
-
-    /*  DISABLE UNTIL FIXED PROBLEM
-    public void SetLobbyPassword(string LPass)
-    {
-        LobbyPassword = LPass;
-    }
-    */
-
 
     public void SetLobbyName(string LName)
     {

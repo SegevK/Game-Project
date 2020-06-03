@@ -12,8 +12,17 @@ public class HandgunScript : NetworkBehaviour
 	
 	public PlayerWeapon weapon; //from the weapon class
 
+	private int damage;
+	private int range;
+	private int ammo;
+	private float fireRate;
+	private int weaponUsedOnPress = 1;
+	private float lastFired;
+
 	[SerializeField]
 	private LayerMask mask;
+
+	  //false on start,when the player spawns with the pistol weapon
 
 	//Animator component attached to weapon
 	public Animator anim;
@@ -81,8 +90,7 @@ public class HandgunScript : NetworkBehaviour
 	//How much ammo is currently left
 	private int currentAmmo;
 	//Totalt amount of ammo
-	[Tooltip("How much ammo the weapon should have.")]
-	public int ammo;
+	
 	//Check if out of ammo
 	private bool outOfAmmo;
 
@@ -177,10 +185,12 @@ public class HandgunScript : NetworkBehaviour
 	#region InGame
 	private void Awake()
 	{
-
-		//Set current ammo to total ammo value
+		//Set current ammo to total ammo value and setup the weapon(1 or 2)
+	    ammo = weapon.ammo1;
+		damage = weapon.damage1;
+		range = weapon.range1;
+		fireRate = weapon.fireRate;
 		currentAmmo = ammo;
-
 		muzzleflashLight.enabled = false;
 	}
 
@@ -193,9 +203,30 @@ public class HandgunScript : NetworkBehaviour
 	}
 
 
+	private void SwitchWeapon()    //changes weapon type and resets ammo
+	{
+		if (weaponUsedOnPress == 1)
+		{
+			weaponUsedOnPress = 2;
+			ammo = weapon.ammo2;
+			damage = weapon.damage2;
+			range = weapon.range2;
+			currentAmmo = 0;
+		}
+		
+		else
+		{
+			weaponUsedOnPress = 1;
+			ammo = weapon.ammo1;
+			damage = weapon.damage1;
+			range = weapon.range1;
+			currentAmmo = 0;
+		}
+	}
+
+
 	private void Update()
 	{
-		currentAmmoText.text = currentAmmo.ToString();
 		if (PauseMenu.IsOn)
 		{
 			if (isWalking)
@@ -212,7 +243,14 @@ public class HandgunScript : NetworkBehaviour
 
 			return;
 		}
-	
+
+		currentAmmoText.text = currentAmmo.ToString();  //changes the displayed ammo number every frame
+
+		if ( (Input.GetKeyDown(KeyCode.Alpha2)) && !(weaponUsedOnPress == 2) && (!isReloading) )
+			SwitchWeapon();
+		
+		if ((Input.GetKeyDown(KeyCode.Alpha1)) && !(weaponUsedOnPress == 1) && (!isReloading) )
+			SwitchWeapon();
 
 		/*    used for testing mouse cursur in game
 				if (Input.GetKeyDown(KeyCode.L))  //press L key to hide the cursur in-game
@@ -229,7 +267,7 @@ public class HandgunScript : NetworkBehaviour
 
 
 		//Aiming
-		//Toggle camera FOV when right click is held down
+		//Toggle camera FOV when right click is held down   -- for zoom in when aiming
 		if (Input.GetButton("Fire2") && !isReloading && !isRunning && !isInspecting)
 		{
 			gunCamera.fieldOfView = Mathf.Lerp(gunCamera.fieldOfView,
@@ -248,7 +286,6 @@ public class HandgunScript : NetworkBehaviour
 		else
 		{
 			//When right click is released
-			//crosshair.enabled = true;
 			gunCamera.fieldOfView = Mathf.Lerp(gunCamera.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
 			isAiming = false;
 			anim.SetBool("Aim", false);
@@ -262,65 +299,9 @@ public class HandgunScript : NetworkBehaviour
 			randomMuzzleflashValue = Random.Range(minRandomValue, maxRandomValue);
 		}
 
-		//Timescale settings ----- DO NOT ACTIVATE !!!!!! 
-		//Change timescale to normal when 1 key is pressed
-		/*
-		if (Input.GetKeyDown (KeyCode.Alpha1)) 
-		{
-			Time.timeScale = 1.0f;
-			timescaleText.text = "1.0";
-		}
-		//Change timescale to 50% when 2 key is pressed
-		if (Input.GetKeyDown (KeyCode.Alpha2)) 
-		{
-			Time.timeScale = 0.5f;
-			timescaleText.text = "0.5";
-		}
-		//Change timescale to 25% when 3 key is pressed
-		if (Input.GetKeyDown (KeyCode.Alpha3)) 
-		{
-			Time.timeScale = 0.25f;
-			timescaleText.text = "0.25";
-		}
-		//Change timescale to 10% when 4 key is pressed
-		if (Input.GetKeyDown (KeyCode.Alpha4)) 
-		{
-			Time.timeScale = 0.1f;
-			timescaleText.text = "0.1";
-		}
-		//Pause game when 5 key is pressed
-		if (Input.GetKeyDown (KeyCode.Alpha5)) 
-		{
-			Time.timeScale = 0.0f;
-			timescaleText.text = "0.0";
-		}
-	    */ // TIME SCALE SETTINGS -- DO NOT ACTIVATE //
-
-
 		//Continosuly check which animation 
 		//is currently playing
 		AnimationCheck();
-
-		/*  ANIMATIONS THAT ARE NOT IN USE -- DIDNT HAVE TIME TO IMPLEMENT THE FEATURES THAT THE ANIMATIONS ARE USED FOR
-		//Play knife attack 1 animation when Q key is pressed
-		if (Input.GetKeyDown(KeyCode.Q) && !isInspecting)
-		{
-			anim.Play("Knife Attack 1", 0, 0f);
-		}
-		//Play knife attack 2 animation when F key is pressed
-		if (Input.GetKeyDown(KeyCode.F) && !isInspecting)
-		{
-			anim.Play("Knife Attack 2", 0, 0f);
-		}
-
-		//Throw grenade when pressing G key
-		if (Input.GetKeyDown(KeyCode.G) && !isInspecting)
-		{
-			StartCoroutine(GrenadeSpawnDelay());
-			//Play grenade throw animation
-			anim.Play("GrenadeThrow", 0, 0.0f);
-		}
-		*/
 
 		//If out of ammo
 		if (currentAmmo == 0)
@@ -348,58 +329,65 @@ public class HandgunScript : NetworkBehaviour
 
 
 		//Shooting 
-		if (Input.GetMouseButtonDown(0) && !outOfAmmo && !isReloading && !isInspecting && !isRunning)
+		if (weaponUsedOnPress == 1)
 		{
-			//Remove 1 bullet from ammo
-			currentAmmo -= 1;
-			shootAudioSource.clip = SoundClips.shootSound;
-			shootAudioSource.Play();
-
-
-			Shoot();
-
+			if (Input.GetMouseButtonDown(0) && !outOfAmmo && !isReloading && !isRunning)
+				Shoot();
 		}
 
-		/* FEATURES THAT I DIDNT HAVE TIME TO IMPLEMENT INTO THE GAME 
-		//Inspect weapon when pressing T key
-		if (Input.GetKeyDown(KeyCode.T))
-		{
-			anim.SetTrigger("Inspect");
-		}
-
-		//Toggle weapon holster when pressing E key
-		if (Input.GetKeyDown(KeyCode.E) && !hasBeenHolstered)
-		{
-			holstered = true;
-
-			mainAudioSource.clip = SoundClips.holsterSound;
-			mainAudioSource.Play();
-
-			hasBeenHolstered = true;
-		}
-		else if (Input.GetKeyDown(KeyCode.E) && hasBeenHolstered)
-		{
-			holstered = false;
-
-			mainAudioSource.clip = SoundClips.takeOutSound;
-			mainAudioSource.Play();
-
-			hasBeenHolstered = false;
-		}
-
-		//Holster anim toggle
-		if (holstered == true)
-		{
-			anim.SetBool("Holster", true);
-		}
 		else
 		{
-			anim.SetBool("Holster", false);
+			if (Input.GetButton("Fire1") && !outOfAmmo && !isReloading && !isRunning)  //automatic fire
+			{
+				if (Time.time - lastFired > 1 / fireRate)
+				{
+					lastFired = Time.time;
+					Shoot();
+				}
+					
+			}
 		}
-		*/
 
-		//Reload 
-		if (Input.GetKeyDown(KeyCode.R) && !isReloading && !isInspecting)
+				/* FEATURES THAT I DIDNT HAVE TIME TO IMPLEMENT INTO THE GAME 
+				//Inspect weapon when pressing T key
+				if (Input.GetKeyDown(KeyCode.T))
+				{
+					anim.SetTrigger("Inspect");
+				}
+
+				//Toggle weapon holster when pressing E key
+				if (Input.GetKeyDown(KeyCode.E) && !hasBeenHolstered)
+				{
+					holstered = true;
+
+					mainAudioSource.clip = SoundClips.holsterSound;
+					mainAudioSource.Play();
+
+					hasBeenHolstered = true;
+				}
+				else if (Input.GetKeyDown(KeyCode.E) && hasBeenHolstered)
+				{
+					holstered = false;
+
+					mainAudioSource.clip = SoundClips.takeOutSound;
+					mainAudioSource.Play();
+
+					hasBeenHolstered = false;
+				}
+
+				//Holster anim toggle
+				if (holstered == true)
+				{
+					anim.SetBool("Holster", true);
+				}
+				else
+				{
+					anim.SetBool("Holster", false);
+				}
+				*/
+
+				//Reload 
+		if (Input.GetKeyDown(KeyCode.R) && !isReloading )
 		{
 			//Reload
 			Reload();
@@ -471,7 +459,6 @@ public class HandgunScript : NetworkBehaviour
 
 	private IEnumerator AutoReload()
 	{
-
 		if (!hasStartedSliderBack)
 		{
 			hasStartedSliderBack = true;
@@ -597,18 +584,23 @@ public class HandgunScript : NetworkBehaviour
 
 	// Might change raycast to server to prevent cheaters,but can cause alot of problems //
 
-	[Client]
+	[Client]  //runs only on client sides, and not on the server
 	void Shoot()
 	{
-		if (!isLocalPlayer)   //causes the shoot method to activate for only one player- the client
+		if (!isLocalPlayer)   //causes the shoot method to activate for only one player- the local client
 		{
 			return;
 		}
+		
+		//Remove 1 bullet from ammo
+		currentAmmo -= 1;
+		shootAudioSource.clip = SoundClips.shootSound;
+		shootAudioSource.Play();
 
 		CmdOnShoot();
 
 		RaycastHit shot;
-		if (Physics.Raycast(Spawnpoints.bulletSpawnPoint.transform.position, Spawnpoints.bulletSpawnPoint.transform.forward, out shot, weapon.range, mask))
+		if (Physics.Raycast(Spawnpoints.bulletSpawnPoint.transform.position, Spawnpoints.bulletSpawnPoint.transform.forward, out shot, range, mask))
 		{
 			string Name = shot.transform.gameObject.name;
 			string Tag = shot.transform.gameObject.tag;
@@ -616,7 +608,7 @@ public class HandgunScript : NetworkBehaviour
 			{
 				Debug.Log("The TAG " + Tag);
 				Debug.Log("hit " + Name);
-				CmdPlayerShot(Name, weapon.damage);
+				CmdPlayerShot(Name, damage);
 				Debug.Log("Ended the Shoot function + sent data to cmd function");
 			}
 

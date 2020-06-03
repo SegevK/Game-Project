@@ -35,7 +35,7 @@ public class JoinGame : MonoBehaviour
     }
 
 
-   
+    //publique car on l'appelle depuis un bouton
     public void RefreshServerBrowser()
     {
         ClearServerBrowser();
@@ -76,20 +76,20 @@ public class JoinGame : MonoBehaviour
     }
 
 
-    private void ClearServerBrowser()     //clears the server browser after joining a game(to display joining text),or after a room is closed)
+    private void ClearServerBrowser()
     {
         for (int i = 0; i < ServerBrowser.Count; i++)
         {
             Destroy(ServerBrowser[i]);
         }
 
-        
+        //on détruit les références des objets dans la liste
         ServerBrowser.Clear();
     }
 
-    public void JoinRoom(MatchInfoSnapshot _match)     
+    public void JoinRoom(MatchInfoSnapshot _match)     //add a request timeout that cancels the room join fucntion mid-way if it takes too long to connect(usually because the host left a game,but it wasnt destroyed yet)
     {
-        // the arguments passed are-(netId,password,callback)
+        //(netId,password,callback)
         networkManager.matchMaker.JoinMatch(_match.networkId, "", "", "", 0, 0, networkManager.OnMatchJoined);
         ClearServerBrowser();
         status.text = "Joining " + _match.name + "...";
